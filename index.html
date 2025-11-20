@@ -140,13 +140,20 @@
     }
 
     .question {
-      margin-bottom: 10px;
+      margin-bottom: 18px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .question:last-of-type {
+      border-bottom: none;
+      padding-bottom: 0;
     }
 
     .question-label {
       font-size: 0.78rem;
-      margin-bottom: 2px;
-      line-height: 1.35;
+      margin-bottom: 6px;
+      line-height: 1.4;
     }
 
     .question-label span.code {
@@ -155,51 +162,32 @@
       margin-right: 4px;
     }
 
-    .slider-row {
+    .options-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .option-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--muted);
+      font-size: 0.78rem;
       display: flex;
       align-items: center;
-      gap: 8px;
-    }
-
-    input[type="range"] {
-      flex: 1;
-      -webkit-appearance: none;
-      appearance: none;
-      height: 5px;
-      border-radius: 999px;
-      background: #1f2933;
-      outline: none;
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--accent);
-      border: 1px solid #0f172a;
+      justify-content: center;
       cursor: pointer;
+      padding: 0;
     }
 
-    input[type="range"]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--accent);
-      border: 1px solid #0f172a;
-      cursor: pointer;
-    }
-
-    .value-pill {
-      min-width: 32px;
-      text-align: center;
-      font-size: 0.75rem;
-      padding: 2px 6px;
-      border-radius: 999px;
-      background: #020617;
-      border: 1px solid #1f2937;
-      color: var(--text);
+    .option-dot.selected {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #0b1120;
     }
 
     .scale-legend {
@@ -365,14 +353,14 @@
     <header>
       <h1>Youth No Scam – Screening Sliders</h1>
       <p class="subtitle">
-        One screen per questionnaire. Move the sliders to record responses.
-        Scores update automatically. Questions can be shown in English or 中文(粵語).
+        One screen per questionnaire. Tap the circles to choose your answer.
+        Scores update automatically. Questions can be shown in English or 中文（繁體）。
       </p>
 
       <div class="lang-toggle">
         <span>Language / 語言：</span>
-        <button type="button" data-lang="en" class="active">EN</button>
-        <button type="button" data-lang="zh">中文 (粵語)</button>
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="zh" class="active">中文</button>
       </div>
       <div class="step-indicator" id="step-indicator"></div>
     </header>
@@ -409,14 +397,15 @@
     </div>
 
     <div class="nav-bar">
-      <button class="nav-btn" id="prev-btn">Previous</button>
+      <button class="nav-btn" id="prev-btn">上一頁</button>
       <div class="nav-middle" id="nav-middle-text"></div>
-      <button class="nav-btn primary" id="next-btn">Next</button>
+      <button class="nav-btn primary" id="next-btn">下一頁</button>
     </div>
   </div>
 
   <script>
-    let currentLang = 'en';
+    // Default language: Chinese (written, zh-tw style)
+    let currentLang = 'zh';
     let currentPage = 0;
 
     const stepNames = [
@@ -428,131 +417,205 @@
       'Results'
     ];
 
-    // ---------- Items (EN + zh-hk) ----------
+    // ---------- Items (EN + zh written) ----------
     const phq9Items = [
-      { code: "PHQ-1",
+      {
+        code: "PHQ-1",
         labelEn: "Loss of interest or enjoyment in everyday activities.",
-        labelZh: "對平日鍾意做嘅嘢失去興趣或樂趣。" },
-      { code: "PHQ-2",
+        labelZh: "對平日喜歡做的事情失去興趣或樂趣。"
+      },
+      {
+        code: "PHQ-2",
         labelEn: "Feeling sad, low, or without hope.",
-        labelZh: "覺得心情好低落、抑鬱，或者好冇希望。" },
-      { code: "PHQ-3",
+        labelZh: "覺得心情低落、憂鬱，或覺得沒有希望。"
+      },
+      {
+        code: "PHQ-3",
         labelEn: "Difficulty getting to sleep, staying asleep, or sleeping far more than usual.",
-        labelZh: "好難入睡、成晚易醒，或者瞓得特別多。" },
-      { code: "PHQ-4",
+        labelZh: "入睡困難、睡眠容易中斷，或睡得比平常多很多。"
+      },
+      {
+        code: "PHQ-4",
         labelEn: "Feeling tired or having very little energy.",
-        labelZh: "成日覺得好攰、好冇精神冇力。" },
-      { code: "PHQ-5",
+        labelZh: "經常感到疲倦或缺乏精力。"
+      },
+      {
+        code: "PHQ-5",
         labelEn: "Changes in appetite, such as eating too little or too much.",
-        labelZh: "胃口明顯改變，好少食或者食得特別多。" },
-      { code: "PHQ-6",
+        labelZh: "食慾明顯改變，例如吃得太少或太多。"
+      },
+      {
+        code: "PHQ-6",
         labelEn: "Harsh self-criticism or feeling like a failure to yourself or others.",
-        labelZh: "成日鬧自己，覺得自己好失敗、辜負咗人。" },
-      { code: "PHQ-7",
+        labelZh: "經常責怪自己，覺得自己失敗或辜負了別人。"
+      },
+      {
+        code: "PHQ-7",
         labelEn: "Difficulty concentrating on tasks like reading, studying, or watching something.",
-        labelZh: "好難集中精神睇書、做嘢或者專心睇節目。" },
-      { code: "PHQ-8",
+        labelZh: "很難專心做事，例如看書、工作或看節目。"
+      },
+      {
+        code: "PHQ-8",
         labelEn: "Moving or speaking much more slowly than usual, or feeling very restless and fidgety.",
-        labelZh: "講嘢、郁動比平時慢好多，或者相反好坐唔定、心浮氣躁。" },
-      { code: "PHQ-9",
+        labelZh: "說話或動作比平常明顯變慢，或相反地感到坐立難安、一直想動。"
+      },
+      {
+        code: "PHQ-9",
         labelEn: "Recurring thoughts of death or of harming yourself.",
-        labelZh: "間中會諗起死亡，或者傷害自己嘅念頭。" }
+        labelZh: "不時出現與死亡相關的想法，或傷害自己的念頭。"
+      }
     ];
 
     const gad7Items = [
-      { code: "GAD-1",
+      {
+        code: "GAD-1",
         labelEn: "Feeling nervous, tense, or on edge.",
-        labelZh: "覺得好緊張、繃緊、好似放鬆唔到。" },
-      { code: "GAD-2",
+        labelZh: "感到緊張、焦慮或難以放鬆。"
+      },
+      {
+        code: "GAD-2",
         labelEn: "Finding it hard to stop or control worrying.",
-        labelZh: "好難停低自己擔心嘅諗法，控制唔到個心掛住嘢。" },
-      { code: "GAD-3",
+        labelZh: "很難停止或控制擔心的想法。"
+      },
+      {
+        code: "GAD-3",
         labelEn: "Worrying a lot about many different things.",
-        labelZh: "對好多唔同嘅事情都不停咁擔心。" },
-      { code: "GAD-4",
+        labelZh: "對許多不同的事情反覆擔心。"
+      },
+      {
+        code: "GAD-4",
         labelEn: "Difficulty relaxing or unwinding.",
-        labelZh: "好難放鬆自己，成日處於繃緊狀態。" },
-      { code: "GAD-5",
+        labelZh: "感到難以放鬆或鬆弛下來。"
+      },
+      {
+        code: "GAD-5",
         labelEn: "Feeling so restless that it is hard to sit still.",
-        labelZh: "坐唔定、心緒不寧，好似周身唔聚財。" },
-      { code: "GAD-6",
+        labelZh: "感到坐立不安，好像很難安靜坐著。"
+      },
+      {
+        code: "GAD-6",
         labelEn: "Getting easily annoyed or irritable.",
-        labelZh: "好容易忟憎、發脾氣或者頂唔順人。" },
-      { code: "GAD-7",
+        labelZh: "容易生氣或變得煩躁。"
+      },
+      {
+        code: "GAD-7",
         labelEn: "Feeling afraid as if something bad might happen.",
-        labelZh: "總覺得會發生唔好嘅事，有種莫名嘅驚恐。" }
+        labelZh: "經常擔心會發生不好的事情。"
+      }
     ];
 
     const bscsItems = [
-      { code: "BSCS-1",
+      {
+        code: "BSCS-1",
         labelEn: "I am generally good at resisting temptations that are not good for me.",
-        labelZh: "一般嚟講，我都幾能夠抗拒對自己唔好嘅誘惑。" },
-      { code: "BSCS-2",
+        labelZh: "一般來說，我擅長抵抗對自己不好的誘惑。"
+      },
+      {
+        code: "BSCS-2",
         labelEn: "I find it hard to break habits that I know are unhelpful.",
-        labelZh: "明知啲習慣唔好，但要改掉佢好困難。" },
-      { code: "BSCS-3",
+        labelZh: "即使知道某些習慣不好，我仍然很難改掉。"
+      },
+      {
+        code: "BSCS-3",
         labelEn: "I often put off work or responsibilities when I should start.",
-        labelZh: "我成日將應該開始做嘅嘢拖延住唔做。" },
-      { code: "BSCS-4",
+        labelZh: "我常常把應該開始做的工作或責任往後拖。"
+      },
+      {
+        code: "BSCS-4",
         labelEn: "I sometimes say or do things without thinking through the impact.",
-        labelZh: "我有時會冇諗清楚後果就講咗／做咗啲嘢。" },
-      { code: "BSCS-5",
+        labelZh: "我有時會在沒有充分考慮後果前就說話或行動。"
+      },
+      {
+        code: "BSCS-5",
         labelEn: "I can refuse things that are clearly bad for my health or future.",
-        labelZh: "面對明顯對健康或前途唔好嘅嘢，我有能力拒絕。" },
-      { code: "BSCS-6",
+        labelZh: "面對明顯不利於健康或前途的事情時，我有能力拒絕。"
+      },
+      {
+        code: "BSCS-6",
         labelEn: "If something is enjoyable, I may still do it even when I know it is not wise.",
-        labelZh: "如果一樣嘢好好玩，我有時會照做，即使知道唔太明智。" },
-      { code: "BSCS-7",
+        labelZh: "即使知道不太明智，遇到令人愉快的事情時，我有時仍會照做。"
+      },
+      {
+        code: "BSCS-7",
         labelEn: "I wish I had stronger self-discipline in daily life.",
-        labelZh: "我覺得自己喺日常生活可以再自律啲就好。" },
-      { code: "BSCS-8",
+        labelZh: "我希望自己在日常生活中能更有自律。"
+      },
+      {
+        code: "BSCS-8",
         labelEn: "People who know me well would describe me as having strong self-control.",
-        labelZh: "熟我嘅人會形容我係幾有自制力嘅。" },
-      { code: "BSCS-9",
+        labelZh: "熟悉我的人會形容我相當有自制力。"
+      },
+      {
+        code: "BSCS-9",
         labelEn: "Enjoyment and fun sometimes interfere with finishing important tasks.",
-        labelZh: "因為貪玩、享受，有時會阻礙我完成重要嘅工作或功課。" },
-      { code: "BSCS-10",
+        labelZh: "享樂或玩樂有時會影響我完成重要的工作或功課。"
+      },
+      {
+        code: "BSCS-10",
         labelEn: "I sometimes have trouble keeping my attention on what I am doing.",
-        labelZh: "我有時好難長時間專注喺手頭上做緊嘅嘢。" },
-      { code: "BSCS-11",
+        labelZh: "我有時很難長時間專注在手邊的事情。"
+      },
+      {
+        code: "BSCS-11",
         labelEn: "I am able to work steadily toward long-term goals.",
-        labelZh: "我有能力穩定咁向住長遠目標慢慢努力。" },
-      { code: "BSCS-12",
+        labelZh: "我能穩定地朝長期目標持續努力。"
+      },
+      {
+        code: "BSCS-12",
         labelEn: "At times I cannot stop myself from doing something, even when I know it is wrong.",
-        labelZh: "有啲時候，明知唔啱，我都會忍唔住去做。" },
-      { code: "BSCS-13",
+        labelZh: "有時即使知道不對，我仍然無法阻止自己去做。"
+      },
+      {
+        code: "BSCS-13",
         labelEn: "I often act quickly without considering all the options.",
-        labelZh: "我幾多時都係好快就作出行動，未必諗清楚所有選擇。" }
+        labelZh: "我常常很快就採取行動，而沒有充分考慮所有選擇。"
+      }
     ];
 
     const ucla3Items = [
-      { code: "UCLA-1",
+      {
+        code: "UCLA-1",
         labelEn: "How often do you feel that you lack company or close companionship?",
-        labelZh: "你幾多時覺得自己身邊冇乜人陪、缺乏親近嘅夥伴？" },
-      { code: "UCLA-2",
+        labelZh: "你多久會覺得缺少陪伴或親近的伙伴？"
+      },
+      {
+        code: "UCLA-2",
         labelEn: "How often do you feel left out by others?",
-        labelZh: "你幾多時會覺得自己畀人冷落、好似被排除喺外？" },
-      { code: "UCLA-3",
+        labelZh: "你多久會覺得被別人冷落或排除在外？"
+      },
+      {
+        code: "UCLA-3",
         labelEn: "How often do you feel isolated from the people around you?",
-        labelZh: "你幾多時覺得同身邊人有距離，好似孤立咗？" }
+        labelZh: "你多久會覺得與身邊的人疏離，好像被孤立？"
+      }
     ];
 
     const scamItems = [
-      { code: "SCAM-1",
+      {
+        code: "SCAM-1",
         labelEn: "I tend to answer phone calls or messages even when I do not recognise the number or sender.",
-        labelZh: "即使唔識個號碼／帳號，我都多數會接聽電話或者回覆訊息。" },
-      { code: "SCAM-2",
+        labelZh: "即使不認識來電號碼或帳號，我通常仍會接聽電話或回覆訊息。"
+      },
+      {
+        code: "SCAM-2",
         labelEn: "I sometimes keep listening to sales or promotional offers even when I am not interested.",
-        labelZh: "即使唔太有興趣，我有時都會繼續聽人推銷或者介紹優惠。" },
-      { code: "SCAM-3",
+        labelZh: "即使不太感興趣，我有時仍會繼續聽別人推銷或介紹優惠。"
+      },
+      {
+        code: "SCAM-3",
         labelEn: "When an offer sounds very attractive, I may believe it before checking carefully.",
-        labelZh: "遇到聽落好吸引嘅優惠，我有時會未查清楚就傾向相信。" },
-      { code: "SCAM-4",
+        labelZh: "遇到聽起來非常吸引的優惠時，我有時在未詳細查證前就傾向相信。"
+      },
+      {
+        code: "SCAM-4",
         labelEn: "Other people have, at times, taken advantage of my trust or kindness.",
-        labelZh: "有人試過利用我比較易信人、或者我好人好相與嘅性格。" },
-      { code: "SCAM-5",
+        labelZh: "有人曾經利用我較容易信任他人或心地善良的特質。"
+      },
+      {
+        code: "SCAM-5",
         labelEn: "I feel confident that I can usually spot and avoid scams.",
-        labelZh: "我覺得自己通常都識得分辨同避免騙案。" }
+        labelZh: "我有信心自己通常能辨識並避免各類詐騙。（正式計分時可能需要反向計分。）"
+      }
     ];
 
     const scales = [
@@ -565,7 +628,7 @@
         min: 0,
         max: 3,
         legendLeft: "0 = not at all / 完全沒有",
-        legendRight: "3 = nearly every day / 幾乎每日",
+        legendRight: "3 = nearly every day / 幾乎每天",
         maxTotal: 27,
         interpret: (score) => {
           if (score <= 4) return { label: "Minimal", class: "low" };
@@ -584,7 +647,7 @@
         min: 0,
         max: 3,
         legendLeft: "0 = not at all / 完全沒有",
-        legendRight: "3 = nearly every day / 幾乎每日",
+        legendRight: "3 = nearly every day / 幾乎每天",
         maxTotal: 21,
         interpret: (score) => {
           if (score <= 4) return { label: "Minimal", class: "low" };
@@ -622,7 +685,7 @@
         items: ucla3Items,
         min: 1,
         max: 3,
-        legendLeft: "1 = hardly ever / 幾乎唔會",
+        legendLeft: "1 = hardly ever / 幾乎不會",
         legendRight: "3 = often / 經常",
         maxTotal: 9,
         interpret: (score) => {
@@ -684,7 +747,6 @@
       card.appendChild(header);
       card.appendChild(desc);
 
-      // Questions
       scale.items.forEach((item) => {
         const q = document.createElement("div");
         q.className = "question";
@@ -698,43 +760,52 @@
           `<span class="qtext">${text}</span>`;
         q.appendChild(label);
 
-        const sliderRow = document.createElement("div");
-        sliderRow.className = "slider-row";
+        const optionsRow = document.createElement("div");
+        optionsRow.className = "options-row";
 
-        const slider = document.createElement("input");
-        slider.type = "range";
-        slider.min = scale.min;
-        slider.max = scale.max;
-        slider.step = 1;
-        const defaultValue = Math.round((scale.min + scale.max) / 2);
-        slider.value = defaultValue;
+        const defaultValue = scale.min; // lowest score as default
+        for (let val = scale.min; val <= scale.max; val++) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "option-dot";
+          btn.textContent = val;
+          btn.dataset.code = item.code;
+          btn.dataset.value = String(val);
 
-        const valuePill = document.createElement("div");
-        valuePill.className = "value-pill";
-        valuePill.textContent = defaultValue;
+          if (val === defaultValue) {
+            btn.classList.add("selected");
+            state[item.code] = val;
+          }
 
-        slider.addEventListener("input", () => {
-          const val = parseInt(slider.value, 10);
-          valuePill.textContent = val;
-          state[item.code] = val;
-          updateScores();
-        });
+          btn.addEventListener("click", () => {
+            // Unselect others for this item
+            document.querySelectorAll(`.option-dot[data-code="${item.code}"]`)
+              .forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            state[item.code] = val;
+            updateScores();
+          });
 
-        sliderRow.appendChild(slider);
-        sliderRow.appendChild(valuePill);
+          optionsRow.appendChild(btn);
+        }
+
+        q.appendChild(optionsRow);
 
         const legend = document.createElement("div");
         legend.className = "scale-legend";
         legend.innerHTML =
           `<span>${scale.legendLeft}</span><span>${scale.legendRight}</span>`;
 
-        q.appendChild(sliderRow);
         q.appendChild(legend);
-
         card.appendChild(q);
+      });
 
-        // init default state
-        state[item.code] = defaultValue;
+      // Ensure defaults are set for any items not covered (fallback)
+      scale.items.forEach(item => {
+        if (typeof state[item.code] === 'undefined') {
+          const def = scale.min;
+          state[item.code] = def;
+        }
       });
 
       const scoreRow = document.createElement("div");
@@ -844,6 +915,37 @@
             currentLang === 'zh' ? item.labelZh : item.labelEn;
         });
       });
+
+      // Update nav button labels based on language + page
+      updateNavLabels();
+    }
+
+    function updateNavLabels() {
+      const prevBtn = document.getElementById("prev-btn");
+      const nextBtn = document.getElementById("next-btn");
+      const middleText = document.getElementById("nav-middle-text");
+
+      const prevLabel = currentLang === 'zh' ? '上一頁' : 'Previous';
+      const nextLabel = currentLang === 'zh' ? '下一頁' : 'Next';
+      const finishLabel = currentLang === 'zh' ? '完成' : 'Finish';
+
+      prevBtn.textContent = prevLabel;
+
+      if (currentPage < 4) {
+        nextBtn.textContent = nextLabel;
+        nextBtn.disabled = false;
+        middleText.textContent = '';
+      } else if (currentPage === 4) {
+        nextBtn.textContent = finishLabel;
+        nextBtn.disabled = false;
+        middleText.textContent = '';
+      } else {
+        nextBtn.textContent = nextLabel;
+        nextBtn.disabled = true;
+        middleText.textContent = currentLang === 'zh' ? '結果' : 'Results';
+      }
+
+      prevBtn.disabled = currentPage === 0;
     }
 
     function showPage(index) {
@@ -856,23 +958,7 @@
       const stepText = document.getElementById("step-indicator");
       stepText.textContent = `Step ${index + 1} of 6 – ${stepNames[index]}`;
 
-      const prevBtn = document.getElementById("prev-btn");
-      const nextBtn = document.getElementById("next-btn");
-      const middleText = document.getElementById("nav-middle-text");
-
-      prevBtn.disabled = index === 0;
-      nextBtn.disabled = index === 5;
-
-      if (index < 4) {
-        nextBtn.textContent = "Next";
-        middleText.textContent = "";
-      } else if (index === 4) {
-        nextBtn.textContent = "View results";
-        middleText.textContent = "";
-      } else {
-        nextBtn.textContent = "Next";
-        middleText.textContent = "Results";
-      }
+      updateNavLabels();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
